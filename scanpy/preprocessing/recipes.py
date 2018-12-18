@@ -53,13 +53,16 @@ def recipe_seurat(adata, log=True, plot=False, copy=False):
     if plot:
         from ..plotting import preprocessing as ppp  # should not import at the top of the file
         ppp.filter_genes_dispersion(filter_result, log=not log)
-    adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
+    if subset:
+        pp.highly_variable_genes(adata.X, min_mean=0.0125, max_mean=3, min_disp=0.5, log=not log)
+    else:
+        adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
     if log: pp.log1p(adata)
     pp.scale(adata, max_value=10)
     return adata if copy else None
 
 
-def recipe_zheng17(adata, n_top_genes=1000, log=True, plot=False, copy=False):
+def recipe_zheng17(adata, n_top_genes=1000, log=True, plot=False, subset=False, copy=False):
     """Normalization and filtering as of [Zheng17]_.
 
     Reproduces the preprocessing of [Zheng17]_ - the Cell Ranger R Kit of 10x
@@ -111,8 +114,11 @@ def recipe_zheng17(adata, n_top_genes=1000, log=True, plot=False, copy=False):
         ppp.filter_genes_dispersion(filter_result, log=True)
     # actually filter the genes, the following is the inplace version of
     #     adata = adata[:, filter_result.gene_subset]
-    adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
-    pp.normalize_per_cell(adata)  # renormalize after filtering
+    if subset:
+        pp.highly_variable_genes(adata.X, flavor='cell_ranger', n_top_genes=n_top_genes, log=False)
+    else:
+        adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
+        pp.normalize_per_cell(adata)  # renormalize after filtering
     if log: pp.log1p(adata)  # log transform: X = log(X + 1)
     pp.scale(adata)
     logg.info('    finished', time=True)
