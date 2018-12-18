@@ -37,7 +37,7 @@ def recipe_weinreb17(adata, log=True, mean_threshold=0.01, cv_threshold=2,
     return adata if copy else None
 
 
-def recipe_seurat(adata, log=True, plot=False, copy=False):
+def recipe_seurat(adata, log=True, plot=False, subset=False, copy=False):
     """Normalization and filtering as of Seurat [Satija15]_.
 
     This uses a particular preprocessing.
@@ -53,7 +53,7 @@ def recipe_seurat(adata, log=True, plot=False, copy=False):
     if plot:
         from ..plotting import preprocessing as ppp  # should not import at the top of the file
         ppp.filter_genes_dispersion(filter_result, log=not log)
-    if subset:
+    if not subset:
         pp.highly_variable_genes(adata.X, min_mean=0.0125, max_mean=3, min_disp=0.5, log=not log)
     else:
         adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
@@ -114,7 +114,7 @@ def recipe_zheng17(adata, n_top_genes=1000, log=True, plot=False, subset=False, 
         ppp.filter_genes_dispersion(filter_result, log=True)
     # actually filter the genes, the following is the inplace version of
     #     adata = adata[:, filter_result.gene_subset]
-    if subset:
+    if not subset:
         pp.highly_variable_genes(adata.X, flavor='cell_ranger', n_top_genes=n_top_genes, log=False)
     else:
         adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
