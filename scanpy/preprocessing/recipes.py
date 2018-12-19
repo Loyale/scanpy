@@ -2,6 +2,7 @@
 """
 
 from . import simple as pp
+from . import highly_variable_genes as hvg
 from ._deprecated.highly_variable_genes import filter_genes_dispersion, filter_genes_cv_deprecated
 from .. import logging as logg
 
@@ -54,7 +55,7 @@ def recipe_seurat(adata, log=True, plot=False, subset=False, copy=False):
         from ..plotting import preprocessing as ppp  # should not import at the top of the file
         ppp.filter_genes_dispersion(filter_result, log=not log)
     if not subset:
-        pp.highly_variable_genes(adata.X, min_mean=0.0125, max_mean=3, min_disp=0.5, log=not log)
+        hvg.highly_variable_genes(adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
     else:
         adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
     if log: pp.log1p(adata)
@@ -115,7 +116,7 @@ def recipe_zheng17(adata, n_top_genes=1000, log=True, plot=False, subset=False, 
     # actually filter the genes, the following is the inplace version of
     #     adata = adata[:, filter_result.gene_subset]
     if not subset:
-        pp.highly_variable_genes(adata.X, flavor='cell_ranger', n_top_genes=n_top_genes, log=False)
+        hvg.highly_variable_genes(adata, flavor='cell_ranger', n_top_genes=n_top_genes)
     else:
         adata._inplace_subset_var(filter_result.gene_subset)  # filter genes
         pp.normalize_per_cell(adata)  # renormalize after filtering
